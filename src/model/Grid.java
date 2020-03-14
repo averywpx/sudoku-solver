@@ -32,6 +32,26 @@ public class Grid {
     this.grid = newGrid;
   }
 
+  //todo: replace it by randomly generate board or get input from view
+  /**
+   * set the initial board, just for test
+   * @param s row by row
+   * @return
+   */
+  public void init(String s){
+    if(s.length() != 81){
+      throw new IllegalArgumentException("Invalid board string length: " + s.length());
+    }
+    for(int i = 0; i < 9; i++){
+      for(int j = 0; j < 9; j++){
+        int strpos = i * 9 + j;
+        char str = s.charAt(strpos);
+        int y = str - '0';
+        this.replaceNumber(i,j,y);
+      }
+    }
+  }
+
   /**
    * check the size of grid
    * @return true if the size is correct
@@ -78,8 +98,22 @@ public class Grid {
    * @param i row index
    * @return the row
    */
-   ArrayList<Integer> getRow(int i){
+  ArrayList<Integer> getRow(int i){
     return this.grid.get(i);
+  }
+
+  /**
+   * check if all of the spot are filled in number
+   * @return true if all full
+   */
+  Boolean isAllFull(){
+    Boolean result = true;
+    for(int i = 0; i < 9; i++){
+      for(int j = 0; j < 9; j++){
+        result = result && (this.getNumber(i,j) != 0);
+      }
+    }
+    return result;
   }
 
 

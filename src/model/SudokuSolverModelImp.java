@@ -1,19 +1,64 @@
 package model;
 
-import java.lang.reflect.Array;
 import java.util.*;
 
 public class SudokuSolverModelImp implements SudokuSolverModel {
   public Grid board;
+  public HashMap<Integer, ArrayList<Integer>> rows;
+  public HashMap<Integer, ArrayList<Integer>> columns;
+  public HashMap<ArrayList<Integer>, ArrayList<Integer>> subsection;
 
   /**
-   * standard constructor
+   * have the initial board
+   * @param s initial board
+   */
+  public SudokuSolverModelImp(String s){
+    this.board = new Grid();
+    this.rows = new HashMap<>();
+    this.columns = new HashMap<>();
+    for(int i = 0; i < 9; i++){
+      ArrayList<Integer> newl = new ArrayList<>();
+      this.rows.put(i,newl);
+      this.columns.put(i,newl);
+    }
+    this.subsection = new HashMap<>();
+    for(int i = 0; i < 9; i += 3){
+      for(int j = 0; j < 9; j += 3){
+        ArrayList<Integer> newl = new ArrayList<>();
+        ArrayList<Integer> pos = new ArrayList<Integer>(Arrays.asList(i, j));
+        this.subsection.put(pos, newl);
+      }
+    }
+
+    this.board.init(s);
+    this.isValid();
+
+  }
+
+  /**
+   * constructor with only board
    * @param board
    */
   public SudokuSolverModelImp(Grid board){
     this.board = board;
+    this.rows = new HashMap<>();
+    this.columns = new HashMap<>();
+    for(int i = 0; i < 9; i++){
+      ArrayList<Integer> newl = new ArrayList<>();
+      this.rows.put(i,newl);
+      this.columns.put(i,newl);
+    }
+    this.subsection = new HashMap<>();
+    for(int i = 0; i < 9; i += 3){
+      for(int j = 0; j < 9; j += 3){
+        ArrayList<Integer> newl = new ArrayList<>();
+        ArrayList<Integer> pos = new ArrayList<Integer>(Arrays.asList(i, j));
+        this.subsection.put(pos, newl);
+      }
+    }
 
   }
+
   @Override
   public String printBoard() {
     if(!this.board.validSize()){
@@ -36,22 +81,41 @@ public class SudokuSolverModelImp implements SudokuSolverModel {
     boolean subsection = true;
     //check each row
     for(int i = 0; i < 9; i++){
-      row = row && validSet(this.board.getRow(i));
+      ArrayList<Integer> valideNum = validSet(this.board.getRow(i));
+      row = row && (valideNum.size() != 10);
+      this.rows.put(i, valideNum);
     }
     for(int j = 0; j< 9; j++){
-      column = column && validSet(this.collectColumn(j));
+      ArrayList<Integer> valideNum = validSet(this.collectColumn(j));
+      column = column && (valideNum.size() != 10);
+      this.columns.put(j, valideNum);
     }
     for(int i = 0; i < 9; i += 3){
       for(int j = 0; j < 9; j += 3){
-        subsection = subsection && validSet(this.collectSubsection(i,j));
+        ArrayList<Integer> coord = new ArrayList<>(Arrays.asList(i, j));
+        ArrayList<Integer> valideNum = validSet(this.collectSubsection(i,j));
+        subsection = subsection && (valideNum.size() != 10);
+        this.subsection.put(coord, valideNum);
       }
     }
     return row && column && subsection;
   }
 
+  //easiest algorithm
+  //todo: case that the size of possible solution for each remain spots is larger than 1
   @Override
   public void fillBoard() {
-
+    //skip if the board have a number
+    while(!this.board.isAllFull()) {
+      for (int i = 0; i < 9; i++) {
+        for (int j = 0; j < 9; j++) {
+          if (this.board.getNumber(i, j) == 0) {
+            this.fillANum(i, j);
+            System.out.print("Filling in i: " + i + ", j: " + j + "\n");
+          }
+        }
+      }
+    }
   }
 
 
@@ -67,9 +131,11 @@ public class SudokuSolverModelImp implements SudokuSolverModel {
       column.add(current);
     }
     if(column.size() == 9){
+      //System.out.print(column);
       return column;
     }else{
-      return new ArrayList<>();
+      throw new IllegalArgumentException("collectColumn: invalid column size: " + column.size());
+      //return new ArrayList<>();
     }
   }
 
@@ -97,7 +163,7 @@ public class SudokuSolverModelImp implements SudokuSolverModel {
    * @param set nine numbers
    * @return true if the set is valid
    */
-  public boolean validSet(ArrayList<Integer> set){
+  public ArrayList<Integer> validSet(ArrayList<Integer> set){
     ArrayList<Integer> template = new ArrayList<>();
     if(set.size() != 9){
       throw new IllegalArgumentException("Given invalid set size: " + set.size());
@@ -114,11 +180,65 @@ public class SudokuSolverModelImp implements SudokuSolverModel {
       }else if(set.get(i) == 0){
         //do nothing
       }else{
-        return false;}
+        ArrayList<Integer> f = new ArrayList<>();
+        for(int j = 0; j < 10; j++){
+          f.add(0);
+        }
+        return f;}
     }
-    return true;
+    return template;
   }
 
+  /**
+   * fill in a number by given position
+   * @param i row index
+   * @param j column index
+   */
+  void fillANum(int i, int j){
+    //check valid input
+    if(i < 0 || i > 8 || j < 0 || j > 8){
+      throw new IllegalArgumentException("invalid index  i: " + i + "j: "+ j);
+    }
+    //check is valid
+    this.isValid();
+
+    //find intersection of the three set
+    int columnStart = i - i % 3;
+    int rowStart = j - j % 3;
+    ArrayList<Integer> subcoord = new ArrayList<>(Arrays.asList(columnStart,rowStart));
+    ArrayList<Integer> intersection = this.intersection(this.rows.get(i), this.columns.get(j),
+            this.subsection.get(subcoord));
+
+    //fill in a number if only one result
+    if(intersection.size() == 1){
+      int y = intersection.get(0);
+      this.board.replaceNumber(i, j, y);
+      System.out.print("============Fill " + y + " at i: " + i + ", j: " + j + "\n");
+    }
+  }
+
+  /**
+   * find the intersection of the three ArrayList
+   * @param a
+   * @param b
+   * @param c
+   * @return the intersection
+   */
+  public ArrayList<Integer> intersection(ArrayList<Integer> a, ArrayList<Integer> b,
+                                   ArrayList<Integer> c){
+
+    System.out.print(a + "\n");
+    System.out.print(b + "\n");
+    System.out.print(c + "\n");
+    b.retainAll(a);
+
+    c.retainAll(b);
+    if(c.size() == 0){
+      throw new IllegalArgumentException("No intersection");
+    }
+
+    return c;
+  }
 
 
 }
