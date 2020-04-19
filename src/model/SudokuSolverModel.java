@@ -3,7 +3,6 @@ package model;
 public interface SudokuSolverModel {
   /**
    * print the current board
-   * @return
    */
   public String printBoard();
 
@@ -14,8 +13,16 @@ public interface SudokuSolverModel {
   public boolean isValid();
 
   /**
-   *fill the board
+   * fill the board
    */
   void fillBoard();
+
+
+  void initialization();
+
+  //-----------------------------------VIEW INTERFACE TEST----------------------------
+  void setString(String i);
+
+  String getString();
 
 }

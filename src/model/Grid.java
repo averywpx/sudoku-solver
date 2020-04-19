@@ -33,8 +33,9 @@ public class Grid {
   }
 
   //todo: replace it by randomly generate board or get input from view
+  //todo: add builder
   /**
-   * set the initial board, just for test
+   * set the initial board by given string, just for test
    * @param s row by row
    * @return
    */
@@ -42,6 +43,7 @@ public class Grid {
     if(s.length() != 81){
       throw new IllegalArgumentException("Invalid board string length: " + s.length());
     }
+
     for(int i = 0; i < 9; i++){
       for(int j = 0; j < 9; j++){
         int strpos = i * 9 + j;
@@ -84,7 +86,8 @@ public class Grid {
     for(int j = 0; j < this.grid.get(i).size(); j++){
       result = result + this.grid.get(i).get(j).toString();
     }
-    return result + "\n";
+    return result;
+    //return result + "\n";
   }
 //  public String printRow(ArrayList<Integer> al){
 //    String result = "";
