@@ -1,8 +1,8 @@
 package view;
 
-import java.awt.*;
-
 import javax.swing.*;
+import javax.swing.text.AbstractDocument;
+import javax.swing.text.PlainDocument;
 
 public class StringPanel extends JPanel {
   private JLabel display;
@@ -13,8 +13,15 @@ public class StringPanel extends JPanel {
     setLayout(stringLayout);
     display = new JLabel("Enter 81 characters (Blank is replaced by 0):");
     add(display);
+
+    //input must be 81 integers
     input = new JTextField(10);
+    PlainDocument doc = (PlainDocument) input.getDocument();
+    //doc.setDocumentFilter(new InputFilter(5));
+    //doc.setDocumentFilter(new SizeFilter(5));
+    doc.setDocumentFilter(new InputFilter(81));
     add(input);
+
     stringLayout.putConstraint(SpringLayout.WEST, display,
             5,
             SpringLayout.WEST, this);

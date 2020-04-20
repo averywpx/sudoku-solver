@@ -12,6 +12,7 @@ public class SudokuSolverModelImpl implements SudokuSolverModel {
 
   //-------------------------------VIEW INTERFACE TEST--------------------------------
   private String input;
+
   /**
    * have the initial board
    */
@@ -114,12 +115,25 @@ public class SudokuSolverModelImpl implements SudokuSolverModel {
   //todo: case that the size of possible solution for each remain spots is larger than 1
   @Override
   public void fillBoard() {
+    try {
+      this.isValid();
+    } catch (IllegalArgumentException e) {
+      System.out.println(e.getMessage());
+    }
+    if (!this.isValid()){
+      throw new IllegalArgumentException("Board has repetition.");
+    }
     //skip if the board have a number
     while (!this.board.isAllFull()) {
       for (int i = 0; i < 9; i++) {
         for (int j = 0; j < 9; j++) {
           if (this.board.getNumber(i, j) == 0) {
-            this.fillANum(i, j);
+            try {
+              this.fillANum(i, j);
+            } catch (IllegalArgumentException e) {
+              System.out.println(e.getMessage());
+            }
+
             System.out.print("Filling in i: " + i + ", j: " + j + "\n");
           }
         }
@@ -173,7 +187,7 @@ public class SudokuSolverModelImpl implements SudokuSolverModel {
    * check if the set have repetition except for 0
    *
    * @param set nine numbers
-   * @return true if the set is valid
+   * @return complement of the set \\ 10 0s if there is repetition
    */
   public ArrayList<Integer> validSet(ArrayList<Integer> set) {
     ArrayList<Integer> template = new ArrayList<>();
@@ -213,8 +227,16 @@ public class SudokuSolverModelImpl implements SudokuSolverModel {
     if (i < 0 || i > 8 || j < 0 || j > 8) {
       throw new IllegalArgumentException("invalid index  i: " + i + "j: " + j);
     }
-    //check is valid
-    this.isValid();
+
+    try {
+      this.isValid();
+    } catch (IllegalArgumentException e) {
+      System.out.println(e.getMessage());
+    }
+    //if isValid is false, throw exception
+    if (!this.isValid()){
+      throw new IllegalArgumentException("Repetition happens.");
+    }
 
     //find intersection of the three set
     int columnStart = i - i % 3;
@@ -246,15 +268,24 @@ public class SudokuSolverModelImpl implements SudokuSolverModel {
 
     c.retainAll(b);
     if (c.size() == 0) {
-      throw new IllegalArgumentException("No intersection");
+      throw new IllegalArgumentException("No intersection for possible answer.");
     }
 
     return c;
   }
-@Override
-  public void initialization(){
+
+  @Override
+  public void initialization() {
     this.board.init(input);
-    this.isValid();
+    try {
+      this.isValid();
+    } catch (IllegalArgumentException e) {
+      System.out.println(e.getMessage());
+    }
+    if (!isValid()) {
+      throw new IllegalArgumentException("Initialization: Board has repetition.");
+    }
+
   }
 
 //------------------------------VIEW TEST---------------------------------------------

@@ -5,6 +5,7 @@ import java.awt.*;
 import javax.swing.*;
 import javax.swing.border.Border;
 import javax.swing.border.EmptyBorder;
+import javax.swing.text.PlainDocument;
 
 public class SudokuBoard extends JPanel {
   //todo: limit input to 1-9
@@ -22,6 +23,10 @@ public class SudokuBoard extends JPanel {
         int index = (row * COLUMNS) + col;
         JTextField field = new JTextField(4);
         field.setBorder(BorderFactory.createEmptyBorder());
+
+        //limit input to a integer
+        PlainDocument doc = (PlainDocument) field.getDocument();
+        doc.setDocumentFilter(new InputFilter(1));
 
         //set font and position
         field.setHorizontalAlignment(JTextField.CENTER);
@@ -68,7 +73,7 @@ public class SudokuBoard extends JPanel {
       result = "";
     }
 
-    System.out.print(result);
+    System.out.print(result + "\n");
     return result;
   }
 

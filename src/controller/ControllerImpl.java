@@ -11,7 +11,7 @@ import view.SdkButtonListener;
 import view.SdkKeyboardListener;
 import view.SudokuSolverView;
 
-public class ControllerImpl implements Controller{
+public class ControllerImpl implements Controller {
   private final SudokuSolverModel model;
   private final SudokuSolverView view;
 
@@ -63,13 +63,13 @@ public class ControllerImpl implements Controller{
   }
 
   private void configureSdkButtonListener() {
-    Map<String,Runnable> buttonClickedMap = new HashMap<String,Runnable>();
+    Map<String, Runnable> buttonClickedMap = new HashMap<String, Runnable>();
     SdkButtonListener SdkButtonListener = new SdkButtonListener();
 
-    buttonClickedMap.put("Solve Button",new SolveButtonAction());
-    buttonClickedMap.put("Help Button",new HelpButtonAction());
-    buttonClickedMap.put("Reset Button",new ResetButtonAction());
-    buttonClickedMap.put("Exit Button",new ExitButtonAction());
+    buttonClickedMap.put("Solve Button", new SolveButtonAction());
+    buttonClickedMap.put("Help Button", new HelpButtonAction());
+    buttonClickedMap.put("Reset Button", new ResetButtonAction());
+    buttonClickedMap.put("Exit Button", new ExitButtonAction());
 
     SdkButtonListener.setButtonClickedActionMap(buttonClickedMap);
     this.view.addActionListener(SdkButtonListener);
@@ -98,15 +98,41 @@ public class ControllerImpl implements Controller{
       String boardText = view.getBoardInput();
 
       //send text to the model
-      if (boardText == "") {
+      if (boardText.equals("") && text.equals("")) {
+        JOptionPane.showMessageDialog(view.getContainer(),
+                "Input can't be empty",
+                "Illegal Input Warning",
+                JOptionPane.ERROR_MESSAGE);
+        throw new IllegalArgumentException("Input can't be empty");
+      } else if (boardText == "") {
         model.setString(text);
       } else {
         model.setString(boardText);
       }
 
-      model.initialization();
+      try {
+        model.initialization();
+      } catch (IllegalArgumentException e) {
+        JOptionPane.showMessageDialog(view.getContainer(),
+                e.getMessage(),
+                "Illegal Input Warning",
+                JOptionPane.ERROR_MESSAGE);
+        view.clearBoard();
+        throw new IllegalArgumentException(e.getMessage());
+      }
+
+
       //calculate result
-      model.fillBoard();
+      try {
+        model.fillBoard();
+      } catch (IllegalArgumentException e) {
+        System.out.println(e.getMessage());
+//        JOptionPane.showMessageDialog(view.getContainer(),
+//                e.getMessage(),
+//                "Illegal Input Warning",
+//                JOptionPane.WARNING_MESSAGE);
+      }
+
 
       //clear input textfield
       view.clearInputString();
@@ -117,7 +143,6 @@ public class ControllerImpl implements Controller{
 //      JOptionPane.showMessageDialog(view.getContainer(),
 //              text);
       view.setSolveOutput(text);
-
 
 
       //set focus back to main frame so that keyboard events work
